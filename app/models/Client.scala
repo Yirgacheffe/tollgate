@@ -1,6 +1,8 @@
 //: models: Client.scala
 package models
 
+import java.time.{ Instant, ZoneId, OffsetDateTime }
+
 import java.sql.Date
 import java.sql.Timestamp
 
@@ -18,5 +20,19 @@ case class Client( id: Int, clientId: String, secret: String, name: String,
                    createdAt: Timestamp, updatedAt: Timestamp )
 
 object Client {
+
+
+  def toDT( ts: Timestamp ): OffsetDateTime = OffsetDateTime.ofInstant( Instant.ofEpochMilli(ts.getTime), ZoneId.systemDefault() )
+  def toTS( dt: OffsetDateTime ): Timestamp = new Timestamp( dt.getNano )
+
+  implicit val tsFormat = new Format[Timestamp] {
+
+    def writes( ts: Timestamp ): JsValue = Json.toJson( toDT(ts) )
+    def reads(  json: JsValue ): JsResult[Timestamp] = Json.fromJson[OffsetDateTime](json).map( toTS )
+
+  }
+
   implicit val clientFormat = Json.format[Client]
-}
+
+
+} //:~

@@ -8,7 +8,8 @@ import play.api.libs.json._
 import models._
 
 
-class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientRepository )( implicit ec: ExecutionContext ) extends AbstractController( cc ) {
+class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientRepository )( implicit ec: ExecutionContext )
+    extends AbstractController( cc ) {
 
 
   def token() = Action.async { implicit request =>
