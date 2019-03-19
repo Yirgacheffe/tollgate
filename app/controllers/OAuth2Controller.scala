@@ -21,61 +21,44 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
 
   private val logger: Logger = Logger( this.getClass )
 
-  /*
-  val grantType = ""
-  val clientId  = ""
-  val clientSecret = ""
-  val scope = ""
-  */
 
-
+  /**
+    *
+    */
   def token() = Action { implicit request =>
 
-    val isRight = for {
-      params <- request.body.asFormUrlEncoded
-      if params.nonEmpty
-      grantType    <- params.get( "grant_type" )
-      clientId     <- params.get( "client_id"  )
-      clientSecret <- params.get( "client_secret" )
-      if grantType.nonEmpty && clientId.nonEmpty && clientSecret.nonEmpty
-    } yield {
-      1
+
+    val body   = request.body
+    val params = body.asFormUrlEncoded.getOrElse( Map.empty[String, Seq[String]] )
+
+    def param( name: String ): Option[String] = params.get( name ).flatMap( values => values.headOption )
+    def requiredParam( name: String ): String = param( name ).getOrElse( "" )
+
+    val grantType    = requiredParam( "grant_type"    )
+    val clientId     = requiredParam( "client_id"     )
+    val clientSecret = requiredParam( "client_secret" )
+
+    if ( grantType.isEmpty || !grantType.equals("client_credentials")
+                           || clientId.isEmpty
+                           || clientSecret.isEmpty ) {
+      BadRequest(
+        Json.obj( "error_msg" -> "Invalid request body." ) )
     }
 
-    if ( isRight.nonEmpty ) {
-      Ok( "it is ok" )
-    } else {
-      BadRequest( Json.obj( "error" -> "Bad request" ) )
-    }
+
+    val maybeCredential = ClientCredential( clientId, clientSecret )
+    val clientAccount = repo.findClientCredential( maybeCredential )
 
 
-
-/*
-    val params = request.body.asFormUrlEncoded
-
-
-    if (params.isEmpty) {
-      Ok(Json.toJson("{Error}"))
-    } else {
-      Ok(params.toString)
-    }
-*/
+    Ok( "dsfsd" + grantType.isEmpty + clientId.isEmpty + clientSecret.isEmpty )
 
     /*
-    val grantType = params.getOrElse( "grant_type", None )
-
-    logger.info( "Get parameter grant_type: " + grantType )
-
-    repo.list().map { client =>
-      Ok( Json.toJson(client) )
-    }
+    clientAccount.map {
+      case Some(client) => Ok( "Ok for you!" )
+      case None         => NotFound( "Client account not found!" )
+    }*/
 
   }
-*/
-
-
-  }
-
 
 
 } //:~

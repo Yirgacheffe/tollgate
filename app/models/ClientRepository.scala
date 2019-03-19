@@ -42,12 +42,26 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
   } //:~
 
 
-
   private val clients = TableQuery[Clients]
 
 
   def list(): Future[Seq[Client]] = db.run { clients.result }
 
+  def findClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {
+
+    val clientId = maybeCredential.clientId
+    val secret   = maybeCredential.clientSecret
+
+    val q = for {
+      c <- clients
+      if c.clientId === clientId && c.secret === secret
+    } yield c
+
+    db.run {
+      q.result.headOption     // Validate client account, should be only 1 record
+    }
+
+  }
 
 
 } //:~
