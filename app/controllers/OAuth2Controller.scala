@@ -1,3 +1,4 @@
+//: controllers: OAuth2Controller.scala
 package controllers
 
 import javax.inject._
@@ -25,8 +26,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
   /**
     *
     */
-  def token() = Action { implicit request =>
-
+  def token() = Action.async { implicit request =>
 
     val body   = request.body
     val params = body.asFormUrlEncoded.getOrElse( Map.empty[String, Seq[String]] )
@@ -34,29 +34,28 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
     def param( name: String ): Option[String] = params.get( name ).flatMap( values => values.headOption )
     def requiredParam( name: String ): String = param( name ).getOrElse( "" )
 
-    val grantType    = requiredParam( "grant_type"    )
-    val clientId     = requiredParam( "client_id"     )
+    val grantType    = requiredParam( "grant_type" )
+    val clientId     = requiredParam( "client_id"  )
     val clientSecret = requiredParam( "client_secret" )
+
 
     if ( grantType.isEmpty || !grantType.equals("client_credentials")
                            || clientId.isEmpty
                            || clientSecret.isEmpty ) {
-      BadRequest(
-        Json.obj( "error_msg" -> "Invalid request body." ) )
+      Future.successful(
+        BadRequest(
+          Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN"))
+      )
+    } else {
+
+      repo.findClientCredential(
+        ClientCredential( clientId, clientSecret )
+      ).map {
+        case Some(c) => Ok( c.toString )
+        case None    => NotFound
+      }
+
     }
-
-
-    val maybeCredential = ClientCredential( clientId, clientSecret )
-    val clientAccount = repo.findClientCredential( maybeCredential )
-
-
-    Ok( "dsfsd" + grantType.isEmpty + clientId.isEmpty + clientSecret.isEmpty )
-
-    /*
-    clientAccount.map {
-      case Some(client) => Ok( "Ok for you!" )
-      case None         => NotFound( "Client account not found!" )
-    }*/
 
   }
 

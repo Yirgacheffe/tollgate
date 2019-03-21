@@ -47,6 +47,11 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
 
   def list(): Future[Seq[Client]] = db.run { clients.result }
 
+
+  /**
+    * Get client account by using client credential
+    * client id and secret
+    */
   def findClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {
 
     val clientId = maybeCredential.clientId
@@ -58,7 +63,7 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
     } yield c
 
     db.run {
-      q.result.headOption     // Validate client account, should be only 1 record
+      q.result.headOption   // Validate client account, should be only 1 record
     }
 
   }
