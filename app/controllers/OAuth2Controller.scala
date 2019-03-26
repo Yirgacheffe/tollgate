@@ -1,14 +1,16 @@
 //: controllers: OAuth2Controller.scala
 package controllers
 
-import javax.inject._
-import scala.concurrent.{ ExecutionContext, Future }
+import java.util.UUID
 
+import javax.inject._
+
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
-
 import models._
+import repository.ClientRepository
 
 
 /**
@@ -21,6 +23,15 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
 
 
   private val logger: Logger = Logger( this.getClass )
+
+
+  case class OAuth2Response( tokenType: String = "bearer", expiresIn: Int = 3600, accessToken: String,
+                             refreshToken: Option[String] )
+
+
+  private val bad_request_caused_by_invalid_parameter =
+      Status(400)(
+        Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN") )
 
 
   /**
@@ -42,20 +53,33 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
     if ( grantType.isEmpty || !grantType.equals("client_credentials")
                            || clientId.isEmpty
                            || clientSecret.isEmpty ) {
+
+      logger.info( "Invalid request parameters found." )
+
       Future.successful(
-        BadRequest(
-          Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN"))
+        bad_request_caused_by_invalid_parameter
       )
+
     } else {
 
-      repo.findClientCredential(
-        ClientCredential( clientId, clientSecret )
-      ).map {
-        case Some(c) => Ok( c.toString )
-        case None    => NotFound
+      repo.findClientCredential( ClientCredential( clientId, clientSecret ) ).map {
+        case Some(c) => Ok( xyzdfd() )
+        case None    => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
 
     }
+
+  }
+
+
+
+
+
+
+  private def xyzdfd() : String = {
+
+    Json.obj(
+      "token_type" -> "bearer", "access_token" -> UUID.randomUUID().toString,  "expires_in" -> 3600 ).toString()
 
   }
 

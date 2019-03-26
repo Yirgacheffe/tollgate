@@ -1,13 +1,14 @@
-//: models: ClientRepository.scala
-package models
+//: repository: ClientRepository.scala
+package repository
 
-import java.sql.{ Date, Timestamp }
 import javax.inject.{ Inject, Singleton }
-
 import scala.concurrent.{ ExecutionContext, Future }
 
-import slick.jdbc.JdbcProfile
 import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
+
+import tables.Clients
+import models.{ Client, ClientCredential }
 
 
 @Singleton
@@ -18,29 +19,6 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
 
   import dbConfig._
   import profile.api._
-
-
-  private class Clients( tag: Tag ) extends Table[Client]( tag, "CLIENTS" ) {
-
-    def id       = column[Int]( "ID", O.PrimaryKey, O.AutoInc )
-
-    def clientId = column[String]( "CLIENT_ID" )
-    def secret   = column[String]( "SECRET" )
-    def name     = column[String]( "NAME"   )
-
-    def effectiveFrom = column[Date]( "EFFECTIVE_FROM"  )
-    def expiredAfter  = column[Date]( "EXPIRED_AFTER"   )
-    def createdAt     = column[Timestamp]( "CREATED_AT" )
-    def updatedAt     = column[Timestamp]( "UPDATED_AT" )
-
-    def * = ( id, clientId, secret,
-      name,
-      effectiveFrom,
-      expiredAfter,
-      createdAt, updatedAt ) <> ( (Client.apply _).tupled, Client.unapply )
-
-  } //:~
-
 
   private val clients = TableQuery[Clients]
 
