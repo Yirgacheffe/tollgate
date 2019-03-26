@@ -1,6 +1,7 @@
 //: controllers: OAuth2Controller.scala
 package controllers
 
+import java.time.Instant
 import java.util.UUID
 
 import javax.inject._
@@ -10,7 +11,7 @@ import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
 import models._
-import repository.ClientRepository
+import repository._
 
 
 /**
@@ -18,7 +19,7 @@ import repository.ClientRepository
   *
   * @version 1.0 $ 2019-03-18 17:19 $
   */
-class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientRepository )( implicit ec: ExecutionContext )
+class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientRepository, tokenRepo: AccessTokenRepository )( implicit ec: ExecutionContext )
     extends AbstractController( cc ) {
 
 
@@ -62,7 +63,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
 
     } else {
 
-      repo.findClientCredential( ClientCredential( clientId, clientSecret ) ).map {
+      clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
         case Some(c) => Ok( xyzdfd() )
         case None    => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
@@ -76,7 +77,17 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, repo: ClientReposit
 
 
 
+
+
   private def xyzdfd() : String = {
+
+
+    val issuedAt  = Instant.now()
+    val expiredIn = 3600
+
+    // val expiredAfter = issuedAt. + expiredIn
+
+    // tokenRepo.create( UUID.randomUUID().toString, Instant.now, Instant.now, False )
 
     Json.obj(
       "token_type" -> "bearer", "access_token" -> UUID.randomUUID().toString,  "expires_in" -> 3600 ).toString()

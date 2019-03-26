@@ -30,7 +30,7 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
     * Get client account by using client credential
     * client id and secret
     */
-  def findClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {
+  def findByClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {
 
     val clientId = maybeCredential.clientId
     val secret   = maybeCredential.clientSecret
