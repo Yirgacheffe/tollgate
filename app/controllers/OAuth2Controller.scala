@@ -1,15 +1,16 @@
 //: controllers: OAuth2Controller.scala
 package controllers
 
-import java.time.Instant
+import java.time.LocalDateTime
 import java.util.UUID
 
 import javax.inject._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
+
 import models._
 import repository._
 
@@ -32,7 +33,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
   private val bad_request_caused_by_invalid_parameter =
       Status(400)(
-        Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN") )
+          Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN") )
 
 
   /**
@@ -64,7 +65,11 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     } else {
 
       clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
-        case Some(c) => Ok( xyzdfd() )
+        case Some(c) =>
+          {
+            logger.info( c.name )
+            Ok( xyzdfd() )
+          }
         case None    => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
 
@@ -74,23 +79,28 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
 
 
-
-
-
-
-
   private def xyzdfd() : String = {
 
 
-    val issuedAt  = Instant.now()
+    import java.sql.Timestamp
+    def toTS( dt: LocalDateTime ): Timestamp = new Timestamp( dt.getNano )
+
+
+    val issuedAt  = LocalDateTime.now()
     val expiredIn = 3600
+    val expiredAfter = issuedAt.plusSeconds( expiredIn )
+    val rdmToken = UUID.randomUUID().toString
 
-    // val expiredAfter = issuedAt. + expiredIn
+    logger.info( rdmToken )
 
-    // tokenRepo.create( UUID.randomUUID().toString, Instant.now, Instant.now, False )
+    val syz = tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), false )
+
+    syz.map { c =>
+      logger.info( c.toString )
+    }
 
     Json.obj(
-      "token_type" -> "bearer", "access_token" -> UUID.randomUUID().toString,  "expires_in" -> 3600 ).toString()
+      "token_type" -> "bearer", "access_token" -> rdmToken, "expires_in" -> expiredIn, "scope" -> "none" ).toString()
 
   }
 

@@ -9,6 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
+import tables.AccessToken
 import tables.{ AccessTokens, YesNoBoolean }
 
 
@@ -34,10 +35,17 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
     *
     */
   def create( token: String, issuedAt: Timestamp, expiredAfter: Timestamp,
-              isExpired: Boolean ): Future[Int] = db.run {
+              isExpired: Boolean ): Future[AccessToken] = db.run {
 
-    accessTokens.map ( t =>
-      ( t.token, t.issuedAt, t.expiredAfter, t.isExpired ) ) += ( token, issuedAt, expiredAfter, YesNoBoolean.fromBool(isExpired) )
+    (
+      accessTokens.map( t =>
+        ( t.token, t.issuedAt, t.expiredAfter, t.isExpired )
+      ) returning
+          accessTokens.map( _.id )
+        into {
+          (accessToken, id ) => accessToken.copy( id = id )
+        }
+    ) += ( token, issuedAt, expiredAfter, YesNoBoolean.fromBool(isExpired) )
 
   }
 
