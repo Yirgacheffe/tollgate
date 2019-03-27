@@ -1,10 +1,8 @@
 //: models: Client.scala
-package models
+package tables
 
-import java.time.{ Instant, ZoneId, OffsetDateTime }
-
-import java.sql.Date
-import java.sql.Timestamp
+import java.sql.{Date, Timestamp}
+import java.time.{Instant, OffsetDateTime, ZoneId}
 
 import play.api.libs.json._
 

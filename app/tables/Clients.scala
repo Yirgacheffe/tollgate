@@ -1,10 +1,9 @@
 //: tables: Clients.scala
 package tables
 
-import java.sql.{ Date, Timestamp }
-import slick.jdbc.MySQLProfile.api._
+import java.sql.{Date, Timestamp}
 
-import models.Client
+import slick.jdbc.MySQLProfile.api._
 
 
 /**

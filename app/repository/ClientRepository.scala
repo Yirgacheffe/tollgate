@@ -1,16 +1,20 @@
 //: repository: ClientRepository.scala
 package repository
 
-import javax.inject.{ Inject, Singleton }
-import scala.concurrent.{ ExecutionContext, Future }
+import javax.inject.{Inject, Singleton}
 
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
+import tables.{Client, Clients}
+import models.ClientCredential
 
-import tables.Clients
-import models.{ Client, ClientCredential }
 
-
+/**
+  * Data access layer repository for 'Client'
+  *
+  * @version 1.0.0 $ 2019-03-27 15:25 $
+  */
 @Singleton
 class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(implicit ec: ExecutionContext ) {
 
@@ -28,6 +32,7 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
 
   /**
     * Get client account by using client credential
+    *
     * client id and secret
     */
   def findByClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {

@@ -1,5 +1,5 @@
-//: models: AccessToken.scala
-package models
+//: tables: AccessToken.scala
+package tables
 
 import java.sql.Timestamp
 
@@ -9,6 +9,6 @@ import java.sql.Timestamp
   *
   * @version 1.0 $ 2019-03-18 17:02 $
   */
-case class AccessToken( id: Int, token: String, issuedAt: Timestamp, expiredAfter: Timestamp, isExpired: Boolean,
+case class AccessToken( id: Int, token: String, issuedAt: Timestamp, expiredAfter: Timestamp, isExpired: YesNoBoolean,
                         createdAt: Timestamp,
                         updatedAt: Timestamp )

@@ -3,16 +3,20 @@ package repository
 
 import java.sql.Timestamp
 
-import javax.inject.{ Inject, Singleton }
-import scala.concurrent.{ ExecutionContext, Future }
+import javax.inject.{Inject, Singleton}
 
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import models.AccessToken
-import tables.AccessTokens
+import tables.{ AccessTokens, YesNoBoolean }
 
 
+/**
+  * Data access layer repository for 'AccessToken'
+  *
+  * @version 1.0.0 $ 2019-03-27 15:26 $
+  */
 @Singleton
 class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider )( implicit ec: ExecutionContext ) {
 
@@ -23,7 +27,7 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
   import profile.api._
 
 
-  private val accessTokens = TableQuery[AccessToken]
+  private val accessTokens = TableQuery[AccessTokens]
 
 
   /**
@@ -33,7 +37,7 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
               isExpired: Boolean ): Future[Int] = db.run {
 
     accessTokens.map ( t =>
-      ( t.token, t.issuedAt, t.expiredAfter, t.isExpired ) ) += ( token, issuedAt, expiredAfter, isExpired )
+      ( t.token, t.issuedAt, t.expiredAfter, t.isExpired ) ) += ( token, issuedAt, expiredAfter, YesNoBoolean.fromBool(isExpired) )
 
   }
 
