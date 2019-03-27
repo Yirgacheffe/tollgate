@@ -6,13 +6,13 @@ import java.util.UUID
 
 import javax.inject._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
-
 import models._
 import repository._
+import tables.YesNoBoolean
 
 
 /**
@@ -83,7 +83,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
 
     import java.sql.Timestamp
-    def toTS( dt: LocalDateTime ): Timestamp = new Timestamp( dt.getNano )
+    def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
 
 
     val issuedAt  = LocalDateTime.now()
@@ -91,12 +91,8 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     val expiredAfter = issuedAt.plusSeconds( expiredIn )
     val rdmToken = UUID.randomUUID().toString
 
-    logger.info( rdmToken )
-
-    val syz = tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), false )
-
-    syz.map { c =>
-      logger.info( c.toString )
+    tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No ).map {
+      _ => logger.info( "dfjskfljs;djs;" )
     }
 
     Json.obj(

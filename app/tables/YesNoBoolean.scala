@@ -9,32 +9,30 @@ import slick.jdbc.MySQLProfile.api._
   *
   * @version 1.0 $ 2019-03-27 15:36 $
   */
-sealed abstract class YesNoBoolean( v: Boolean )
+sealed abstract class YesNoBoolean( val abbr: Char )
 
 
 object YesNoBoolean {
 
-  case object Yes extends YesNoBoolean( true  )
-  case object No  extends YesNoBoolean( false )
+  case object Yes extends YesNoBoolean( 'Y' )
+  case object No  extends YesNoBoolean( 'N' )
 
 
   implicit val columnType: BaseColumnType[YesNoBoolean] =
-        MappedColumnType.base[YesNoBoolean, Boolean]( YesNoBoolean.toBool, YesNoBoolean.fromBool )
+        MappedColumnType.base[YesNoBoolean, Char]( YesNoBoolean.toChar, YesNoBoolean.fromChar )
 
+  def toChar( o: YesNoBoolean ): Char   = o match {
 
-  def toBool( o: YesNoBoolean ): Boolean   = o match {
-
-    case Yes => true
-    case No  => false
-    case _   => sys.error( "Error: system only support 'Yes' and 'No'" )
+    case Yes => 'Y'
+    case No  => 'N'
 
   }
 
-  def fromBool( v: Boolean ): YesNoBoolean = v match {
+  def fromChar( v: Char ): YesNoBoolean = v match {
 
-    case true  => Yes
-    case false => No
-    case _   => sys.error( "Error: system only support type 'Boolean'" )
+    case 'Y' => Yes
+    case 'N' => No
+    case _   => sys.error( "Error: system only support 'Y' and 'N'" )
 
   }
 
