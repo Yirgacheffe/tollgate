@@ -10,7 +10,10 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import tables.{ AccessTokens, YesNoBoolean }
+import tables.{ AccessTokens, AccessToken }
+
+import tables.YesNoBoolean
+import tables.YesNoBoolean._
 
 
 /**
@@ -34,34 +37,29 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
 
   /**
     * Create access token for current login
+    */
+  def create( token: String, issuedAt: Timestamp, expiredAfter: Timestamp, isExpired: YesNoBoolean,
+              clientId: Int ): Future[Int] = db.run {
+
+    accessTokens.map(t =>
+      ( t.token, t.issuedAt, t.expiredAfter, t.isExpired, t.clientId) ) += ( token, issuedAt, expiredAfter, isExpired, clientId )
+
+  }
+
+
+  /**
     *
     */
-  def create( token: String, issuedAt: Timestamp, expiredAfter: Timestamp,
-              isExpired: YesNoBoolean ): Future[Int] = db.run{
+  def findExistTokenByClientId( id: Int ): Future[Option[AccessToken]] = {
 
-    accessTokens.map( t =>
-      ( t.token, t.issuedAt, t.expiredAfter, t.isExpired ) ) += ( token, issuedAt, expiredAfter, isExpired )
-
-
-    /*
-
-    val insert = accessTokens.map( t => (t.token, t.issuedAt, t.expiredAfter, t.isExpired) ).insertStatement
-
-    logger.info( insert )
-    logger.info( "dfasdfsfsd" )
+    val q = for (
+      t <- accessTokens
+      if t.clientId === id && t.isExpired === No.asInstanceOf[YesNoBoolean]
+    ) yield ( t )
 
     db.run {
-      (
-        accessTokens.map( t =>
-          ( t.token, t.issuedAt, t.expiredAfter, t.isExpired )
-        ) returning
-          accessTokens.map( _.id )
-        // into {
-        //   (accessToken, id ) => accessToken.copy( id = id )
-        // }
-        ) += ( token, issuedAt, expiredAfter, YesNoBoolean.fromBool(isExpired) )
+      q.sortBy( _.id.desc ).result.headOption
     }
-  */
 
   }
 

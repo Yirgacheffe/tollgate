@@ -18,8 +18,7 @@ object YesNoBoolean {
   case object No  extends YesNoBoolean( 'N' )
 
 
-  implicit val columnType: BaseColumnType[YesNoBoolean] =
-        MappedColumnType.base[YesNoBoolean, Char]( YesNoBoolean.toChar, YesNoBoolean.fromChar )
+  implicit val columnType = MappedColumnType.base[YesNoBoolean, Char]( YesNoBoolean.toChar, YesNoBoolean.fromChar )
 
   def toChar( o: YesNoBoolean ): Char   = o match {
 

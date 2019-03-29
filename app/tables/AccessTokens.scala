@@ -20,13 +20,16 @@ class AccessTokens( tag: Tag ) extends Table[AccessToken]( tag, "ACCESS_TOKENS")
   def expiredAfter = column[Timestamp]   ( "EXPIRED_AFTER" )
 
   def isExpired    = column[YesNoBoolean]( "IS_EXPIRED"    )
+  def clientId     = column[Int]         ( "ID_CLIENT"     )
+
   def createdAt    = column[Timestamp]   ( "CREATED_AT"    )
   def updatedAt    = column[Timestamp]   ( "UPDATED_AT"    )
 
-  def * = ( id, token, issuedAt, expiredAfter,
+  def * = ( id, token, issuedAt,
+    expiredAfter,
     isExpired,
-    createdAt,
-    updatedAt ) <> ( (AccessToken.apply _).tupled, AccessToken.unapply )
+    clientId,
+    createdAt, updatedAt ) <> ( (AccessToken.apply _).tupled, AccessToken.unapply )
 
 
 } //:~

@@ -65,11 +65,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     } else {
 
       clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
-        case Some(c) =>
-          {
-            logger.info( c.name )
-            Ok( xyzdfd() )
-          }
+        case Some(c) => Ok( xyzdfd( c.id ) )
         case None    => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
 
@@ -79,7 +75,17 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
 
 
-  private def xyzdfd() : String = {
+  private def xyzdfd( clientId: Int ) : String = {
+
+
+    val id = 1
+
+    val xyz = tokenRepo.findExistTokenByClientId( id )
+
+    xyz.map {
+      case Some( t ) => logger.info( t.token )
+      case None      => logger.info( "token not exist" )
+    }
 
 
     import java.sql.Timestamp
@@ -90,11 +96,11 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     val expiredIn = 3600
     val expiredAfter = issuedAt.plusSeconds( expiredIn )
     val rdmToken = UUID.randomUUID().toString
-
-    tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No ).map {
+/*
+    tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, 1 ).map {
       _ => logger.info( "dfjskfljs;djs;" )
     }
-
+*/
     Json.obj(
       "token_type" -> "bearer", "access_token" -> rdmToken, "expires_in" -> expiredIn, "scope" -> "none" ).toString()
 
