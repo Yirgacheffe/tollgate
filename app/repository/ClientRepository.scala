@@ -3,11 +3,12 @@ package repository
 
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
-import tables.{Client, Clients}
+
 import models.ClientCredential
+import tables.{ Client, Clients }
 
 
 /**
@@ -27,13 +28,10 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
   private val clients = TableQuery[Clients]
 
 
-  def list(): Future[Seq[Client]] = db.run { clients.result }
-
-
   /**
     * Get client account by using client credential
     *
-    * client id and secret
+    * @params client id and secret
     */
   def findByClientCredential( maybeCredential: ClientCredential ): Future[Option[Client]] = {
 
@@ -46,7 +44,7 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
     } yield c
 
     db.run {
-      q.result.headOption   // Validate client account, should be only 1 record
+      q.result.headOption     // Validate client account, should be only 1 record existing
     }
 
   }

@@ -65,8 +65,8 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     } else {
 
       clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
-        case Some(c) => Ok( xyzdfd( c.id ) )
-        case None    => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
+        case Some( c ) => Ok( xyzdfd( c.id ) )
+        case None      => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
 
     }
@@ -78,29 +78,30 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
   private def xyzdfd( clientId: Int ) : String = {
 
 
-    val id = 1
+    val maybeExistToken = tokenRepo.findExistTokenByClientId( clientId )
 
-    val xyz = tokenRepo.findExistTokenByClientId( id )
+    maybeExistToken.map {
+      case Some( t ) => {
 
-    xyz.map {
-      case Some( t ) => logger.info( t.token )
-      case None      => logger.info( "token not exist" )
+      }
+      case None      => {
+
+        import java.sql.Timestamp
+        def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
+
+        val issuedAt  = LocalDateTime.now()
+        val expiredIn = 3600
+        val expiredAfter = issuedAt.plusSeconds( expiredIn )
+        val rdmToken = UUID.randomUUID().toString
+
+
+        tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, clientId ).map {
+          _ => logger.info( "dfjskfljs;djs;" )
+        }
+
+      }
     }
 
-
-    import java.sql.Timestamp
-    def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
-
-
-    val issuedAt  = LocalDateTime.now()
-    val expiredIn = 3600
-    val expiredAfter = issuedAt.plusSeconds( expiredIn )
-    val rdmToken = UUID.randomUUID().toString
-/*
-    tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, 1 ).map {
-      _ => logger.info( "dfjskfljs;djs;" )
-    }
-*/
     Json.obj(
       "token_type" -> "bearer", "access_token" -> rdmToken, "expires_in" -> expiredIn, "scope" -> "none" ).toString()
 

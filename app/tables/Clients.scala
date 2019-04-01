@@ -13,6 +13,7 @@ import slick.jdbc.MySQLProfile.api._
   */
 class Clients( tag: Tag ) extends Table[Client]( tag, "CLIENTS" ) {
 
+
   def id       = column[Int]( "ID", O.PrimaryKey, O.AutoInc )
 
   def clientId = column[String]( "CLIENT_ID" )
@@ -29,5 +30,6 @@ class Clients( tag: Tag ) extends Table[Client]( tag, "CLIENTS" ) {
     effectiveFrom,
     expiredAfter,
     createdAt, updatedAt ) <> ( (Client.apply _).tupled, Client.unapply )
+
 
 } //:~

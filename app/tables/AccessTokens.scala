@@ -13,6 +13,7 @@ import slick.jdbc.MySQLProfile.api._
   */
 class AccessTokens( tag: Tag ) extends Table[AccessToken]( tag, "ACCESS_TOKENS") {
 
+
   def id           = column[Int]( "ID", O.PrimaryKey, O.AutoInc )
   def token        = column[String]      ( "TOKEN"         )
 
