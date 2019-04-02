@@ -6,13 +6,16 @@ import java.util.UUID
 
 import javax.inject._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
+import ExecutionContext.Implicits.global
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
+
 import models._
 import repository._
 import tables.YesNoBoolean
+import tables.AccessToken
 
 
 /**
@@ -65,7 +68,16 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
     } else {
 
       clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
-        case Some( c ) => Ok( xyzdfd( c.id ) )
+        case Some( c ) => {
+
+          /*
+          val returnString = grantByCorrectCredential( c.id ) map {
+            // case Success()
+          }
+          */
+
+          Ok( "" )
+        }
         case None      => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
 
@@ -74,36 +86,38 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
   }
 
 
+  private def createAccessTokenForClient( clientId: Int ): Future[AccessToken] = {
 
-  private def xyzdfd( clientId: Int ) : String = {
+    import java.sql.Timestamp
 
+    def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
+    def generateToken = UUID.randomUUID().toString
 
-    val maybeExistToken = tokenRepo.findExistTokenByClientId( clientId )
+    val issuedAt  = LocalDateTime.now()
+    val expiredIn = 3600
+    val expiredAfter = issuedAt.plusSeconds( expiredIn )
 
-    maybeExistToken.map {
-      case Some( t ) => {
+    tokenRepo.create( generateToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, clientId )
 
-      }
-      case None      => {
-
-        import java.sql.Timestamp
-        def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
-
-        val issuedAt  = LocalDateTime.now()
-        val expiredIn = 3600
-        val expiredAfter = issuedAt.plusSeconds( expiredIn )
-        val rdmToken = UUID.randomUUID().toString
+  }
 
 
-        tokenRepo.create( rdmToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, clientId ).map {
-          _ => logger.info( "dfjskfljs;djs;" )
-        }
+  private def grantByCorrectCredential( clientId: Int ): Future[String] = {
 
-      }
+    def xyz( token: String ) : String = {
+      Json.obj(
+        "token_type" -> "bearer", "access_token" -> token, "expires_in" -> 3600, "scope" -> "none"
+      ).toString()
     }
 
-    Json.obj(
-      "token_type" -> "bearer", "access_token" -> rdmToken, "expires_in" -> expiredIn, "scope" -> "none" ).toString()
+    val isLoggedIn = tokenRepo.findExistTokenByClientId( clientId )
+
+
+    isLoggedIn.map {
+      case Some( t ) => { xyz( "111" ) }
+      case None      => { xyz( "222" ) }
+
+    }
 
   }
 

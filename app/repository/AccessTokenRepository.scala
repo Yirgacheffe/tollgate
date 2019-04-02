@@ -37,22 +37,21 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
 
   def create( token: String, issuedAt: Timestamp, expiredAfter: Timestamp,
               isExpired: YesNoBoolean,
-              clientId: Int ): Future[Int] = db.run {
-
-    accessTokens.map( t =>
-      (
-        t.token,
-        t.issuedAt,
-        t.expiredAfter,
-        t.isExpired,
-        t.clientId
-      )
+              clientId: Int ): Future[AccessToken] = db.run {
+    (
+      accessTokens.map(
+        t => ( t.token, t.issuedAt, t.expiredAfter, t.isExpired, t.clientId )
+      ) returning
+        accessTokens.map( o => ( o.id, o.createdAt, o.updatedAt ) )
+        into (
+          (token, o) => AccessToken( o._1, token._1, token._2, token._3, token._4, token._5, o._2, o._3 )
+        )
     ) += ( token, issuedAt, expiredAfter, isExpired, clientId )
 
   }
 
 
-  def findExistTokenByClientId( id: Int ): Future[ Option[AccessToken] ] = {
+  def findExistTokenByClientId( id: Int ): Future[Option[AccessToken]] = {
 
     val q = for (
       t <- accessTokens
