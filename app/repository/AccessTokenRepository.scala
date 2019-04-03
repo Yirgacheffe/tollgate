@@ -1,17 +1,18 @@
 //: repository: AccessTokenRepository.scala
 package repository
 
+import java.time.LocalDateTime
 import java.sql.Timestamp
+
 import javax.inject.{ Inject, Singleton }
 
 import scala.concurrent.{ ExecutionContext, Future }
-
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+
 import slick.jdbc.JdbcProfile
 
-import tables.{ AccessTokens, AccessToken }
-
+import tables.{ AccessToken, AccessTokens }
 import tables.YesNoBoolean
 import tables.YesNoBoolean._
 
@@ -35,18 +36,28 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
   private val accessTokens = TableQuery[AccessTokens]
 
 
-  def create( token: String, issuedAt: Timestamp, expiredAfter: Timestamp,
+  private def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
+
+
+  /**
+    * Get token by primary key
+    */
+  def findById( id: Int ): Future[Option[AccessToken]] = db.run {
+    accessTokens.filter( _.id === id).result.headOption
+  }
+
+
+  def create( token: String, issuedAt: LocalDateTime, expiredAfter: LocalDateTime,
               isExpired: YesNoBoolean,
               clientId: Int ): Future[AccessToken] = db.run {
+
     (
-      accessTokens.map(
-        t => ( t.token, t.issuedAt, t.expiredAfter, t.isExpired, t.clientId )
-      ) returning
-        accessTokens.map( o => ( o.id, o.createdAt, o.updatedAt ) )
-        into (
-          (token, o) => AccessToken( o._1, token._1, token._2, token._3, token._4, token._5, o._2, o._3 )
+      accessTokens.map( t => ( t.token, t.issuedAt, t.expiredAfter, t.isExpired, t.clientId )
+      ) returning accessTokens.map( o => ( o.id, o.createdAt, o.updatedAt ) )
+        into ( (token, o) =>
+        AccessToken( o._1, token._1, token._2, token._3, token._4, token._5, o._2, o._3 )
         )
-    ) += ( token, issuedAt, expiredAfter, isExpired, clientId )
+      ) += ( token, toTS( issuedAt ), toTS( expiredAfter ), isExpired, clientId )
 
   }
 
