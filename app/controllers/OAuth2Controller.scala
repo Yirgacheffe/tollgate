@@ -6,8 +6,6 @@ import java.util.UUID
 
 import javax.inject._
 
-import scala.util.Success
-import scala.util.Failure
 import scala.concurrent.{ ExecutionContext, Future }
 import play.api.mvc._
 import play.api.Logger
