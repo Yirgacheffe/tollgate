@@ -7,7 +7,6 @@ import java.util.UUID
 import javax.inject._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import ExecutionContext.Implicits.global
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
@@ -30,13 +29,18 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
   private val logger: Logger = Logger( this.getClass )
 
 
-  case class OAuth2Response( tokenType: String = "bearer", expiresIn: Int = 3600, accessToken: String,
-                             refreshToken: Option[String] )
+  case class OAuth2Response( tokenType: String = "bearer", expiresIn: Int = 3600, accessToken: String, refreshToken: Option[String], scope: Option[String] )
 
 
   private val bad_request_caused_by_invalid_parameter =
       Status(400)(
           Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN") )
+
+
+  private def clientCredentialResponse( token: String, expiredId: Int = 3600 ) : String = {
+    Json.obj(
+      "token_type" -> "bearer", "access_token" -> token, "expires_in" -> expiredId, "scope" -> "none" ).toString()
+  }
 
 
   /**
@@ -70,13 +74,14 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
       clientRepo.findByClientCredential( ClientCredential( clientId, clientSecret ) ).map {
         case Some( c ) => {
 
-          /*
-          val returnString = grantByCorrectCredential( c.id ) map {
-            // case Success()
+          val x = issueAccessTokenByCorrectCredential( c.id ).map {
+            t => t
           }
-          */
 
-          Ok( "" )
+
+
+          Ok()
+
         }
         case None      => NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") )
       }
@@ -86,15 +91,14 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
   }
 
 
-  private def createAccessTokenForClient( clientId: Int ): Future[AccessToken] = {
+  private def createAccessToken( clientId: Int, expiredIn: Int = 3600 ): Future[AccessToken] = {
 
     import java.sql.Timestamp
 
     def toTS( dt: LocalDateTime ): Timestamp = Timestamp.valueOf( dt )
     def generateToken = UUID.randomUUID().toString
 
-    val issuedAt  = LocalDateTime.now()
-    val expiredIn = 3600
+    val issuedAt     = LocalDateTime.now()
     val expiredAfter = issuedAt.plusSeconds( expiredIn )
 
     tokenRepo.create( generateToken, toTS( issuedAt ), toTS( expiredAfter ), YesNoBoolean.No, clientId )
@@ -102,22 +106,16 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
   }
 
 
-  private def grantByCorrectCredential( clientId: Int ): Future[String] = {
 
-    def xyz( token: String ) : String = {
-      Json.obj(
-        "token_type" -> "bearer", "access_token" -> token, "expires_in" -> 3600, "scope" -> "none"
-      ).toString()
+  private def issueAccessTokenByCorrectCredential( clientId: Int ): Future[AccessToken] = {
+
+
+    tokenRepo.findExistTokenByClientId( clientId ).flatMap {
+      case Some( token ) => Future.successful( token )
+      case None          => createAccessToken( clientId )
     }
 
-    val isLoggedIn = tokenRepo.findExistTokenByClientId( clientId )
-
-
-    isLoggedIn.map {
-      case Some( t ) => { xyz( "111" ) }
-      case None      => { xyz( "222" ) }
-
-    }
+    // If has exist token then return the current token, else create a new one for the client
 
   }
 
