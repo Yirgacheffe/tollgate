@@ -11,7 +11,6 @@ import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
 
-import models._
 import repository._
 import tables.YesNoBoolean
 import tables.AccessToken

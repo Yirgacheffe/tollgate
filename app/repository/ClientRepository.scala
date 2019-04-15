@@ -56,7 +56,7 @@ class ClientRepository @Inject()(dbConfigProvider: DatabaseConfigProvider )(impl
     } yield c
 
     db.run {
-      q.result.headOption // Get client account by using maybe credential, should be only 1 record existing
+      q.result.headOption   // Get client account by using maybe credential, should be only 1 record existing
     }
 
   }
