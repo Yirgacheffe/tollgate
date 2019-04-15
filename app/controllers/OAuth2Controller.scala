@@ -61,7 +61,8 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
             Ok(
               Json.obj("token_type" -> "bearer",
-                "access_token" -> t.token, "expires_in" -> expiredInSecs, "scope" -> "none" ) )
+                "access_token" -> t.token, "expires_in" -> expiredInSecs, "scope" -> "none" )
+            )
           }
         }
         case None => Future { NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") ) }
