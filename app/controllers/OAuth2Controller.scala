@@ -61,7 +61,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
             Ok(
               Json.obj("token_type" -> "bearer",
-                "access_token" -> t.token, "expires_in" -> expiredInSecs, "scope" -> "none" )
+                "access_token" -> t.token, "expire_after" -> t.expiredAfter, "scope" -> "none" )
             )
           }
         }
