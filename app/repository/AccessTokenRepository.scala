@@ -71,4 +71,20 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
   }
 
 
+  def expireExistTokenByClientId( id: Int ): Future[Int] = {
+
+
+    val q = for (
+      t <- accessTokens
+      if t.clientId === id && t.isExpired === No.asInstanceOf[YesNoBoolean]
+    ) yield t
+
+
+    Future.successful {
+      1
+    }
+
+  }
+
+
 } //:~

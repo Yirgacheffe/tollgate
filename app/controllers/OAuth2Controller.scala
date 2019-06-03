@@ -48,7 +48,9 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
       logger.info( "Invalid request parameters found." )
 
       Future.successful(
-        Status(400)( Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN") )
+        Status(400)(
+          Json.obj("message" -> "Invalid request parameters.", "severity" -> "WARN" )
+        )
       )
 
     } else {
@@ -61,9 +63,10 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
             Ok(
               Json.obj("token_type" -> "bearer",
-                "access_token" -> t.token, "expire_after" -> t.expiredAfter, "scope" -> "none" )
+                "access_token" -> t.token, "expire_in" -> expiredInSecs, "scope" -> "none" )
             )
           }
+
         }
         case None => Future { NotFound( Json.obj("message" -> "Client not found.", "severity" -> "ERROR") ) }
       }
@@ -75,12 +78,16 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
   private def issueAccessTokenByCorrectCredential( clientId: Int ): Future[AccessToken] = {
 
+    /*
     tokenRepo.findExistTokenByClientId( clientId ).flatMap {
       case Some( token ) => Future.successful( token )
       case None          => createAccessToken( clientId )
     }
+   */
 
-    // If has exist token then return the token currently used, else create a new one for the client
+    tokenRepo.expireExistTokenByClientId( clientId )
+    createAccessToken( clientId )
+    // If the clientId has existing access token, expire it then create a new one for the client
 
   }
 
