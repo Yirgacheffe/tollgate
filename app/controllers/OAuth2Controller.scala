@@ -4,13 +4,13 @@ package controllers
 import java.time.LocalDateTime
 import java.util.UUID
 
+import akka.actor.FSM.Failure
 import javax.inject._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
 import play.api.Logger
 import play.api.libs.json._
-
 import repository._
 import tables.YesNoBoolean
 import tables.AccessToken
@@ -61,7 +61,7 @@ class OAuth2Controller @Inject() ( cc: ControllerComponents, clientRepo: ClientR
 
             val expiredInSecs = ( t.expiredAfter.getTime - t.issuedAt.getTime ) / 1000
 
-            Ok(
+            Status( 200 )(
               Json.obj("token_type" -> "bearer",
                 "access_token" -> t.token, "expire_in" -> expiredInSecs, "scope" -> "none" )
             )

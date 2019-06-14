@@ -57,6 +57,7 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
   }
 
 
+  /*
   def findExistTokenByClientId( id: Int ): Future[Option[AccessToken]] = {
 
     val q = for (
@@ -69,20 +70,18 @@ class AccessTokenRepository @Inject()( dbConfigProvider: DatabaseConfigProvider 
     }
 
   }
+  */
 
 
   def expireExistTokenByClientId( id: Int ): Future[Int] = {
 
+    val updateQuery = accessTokens.filter( _.clientId  === id )
+                                  .filter( _.isExpired === No.asInstanceOf[YesNoBoolean] )
+                                  .map( _.isExpired )
 
-    val q = for (
-      t <- accessTokens
-      if t.clientId === id && t.isExpired === No.asInstanceOf[YesNoBoolean]
-    ) yield t
-
-
-    Future.successful {
-      1
-    }
+    db.run(
+      updateQuery.update( Yes.asInstanceOf[YesNoBoolean] )
+    )
 
   }
 
